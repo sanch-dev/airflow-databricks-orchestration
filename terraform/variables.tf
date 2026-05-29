@@ -15,7 +15,7 @@ variable "kafka_bootstrap_servers" {
   # list(string) = a list of text values
   # Example: ["localhost:9092", "localhost:9093"]
   
-  default = ["localhost:9092"]
+  default = ["kafka:9092"]
   # "default" = if no one provides a value, use this
   # So: bootstrap_servers = ["localhost:9092"]
   # You can override it later if needed
