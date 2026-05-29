@@ -213,7 +213,7 @@ services:
     depends_on:
       - kafka
     command: >
-      bash -c "
+      sh -c "
       terraform init &&
       terraform apply -auto-approve
       "
