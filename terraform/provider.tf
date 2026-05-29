@@ -20,7 +20,7 @@ terraform {
       # kafka = provider name
       # Format: NAMESPACE/TYPE
       
-      version = "0.7.2"
+      version = "~> 0.7"
       # "version" = which version of this provider to use
       # Why specific? Reproducibility - same version everywhere
     }
