@@ -73,5 +73,134 @@ services:
       - ./config:/home/airflow/config
     command: airflow scheduler
 
+  # ============================================
+  # ZOOKEEPER SERVICE
+  # ============================================
+  # Zookeeper is Kafka's coordinator/manager
+  # It tracks broker health and cluster state
+  # Kafka needs Zookeeper to function
+  
+  zookeeper:
+    # Service name: "zookeeper"
+    # Will be accessible as "zookeeper" within Docker network
+    
+    image: confluentinc/cp-zookeeper:7.5.0
+    # Use official Confluent Zookeeper image
+    # Version 7.5.0 (must match Kafka version)
+    
+    environment:
+      # Configuration variables for Zookeeper container
+      
+      ZOOKEEPER_CLIENT_PORT: 2181
+      # Port where Kafka will connect to Zookeeper
+      # Standard Zookeeper port = 2181
+      # Kafka will say: "I'm connecting to zookeeper on port 2181"
+      
+      ZOOKEEPER_TICK_TIME: 2000
+      # Heartbeat interval in milliseconds (2000ms = 2 seconds)
+      # Every 2 seconds, Zookeeper checks: "Are Kafka brokers alive?"
+      # If a broker doesn't respond, it's marked as dead
+    
+    ports:
+      # Expose ports from container to host machine
+      
+      - "2181:2181"
+      # HOST_PORT:CONTAINER_PORT
+      # Left (2181) = port on Azure VM
+      # Right (2181) = port inside container
+      # Kafka (inside container) will connect to port 2181
+
+
+  # ============================================
+  # KAFKA SERVICE (BROKER 1)
+  # ============================================
+  # Kafka broker is the actual message server
+  # Stores messages, serves producers/consumers
+  # This is a single broker (node) in a cluster
+  
+  kafka:
+    # Service name: "kafka"
+    # Will be accessible as "kafka" within Docker network
+    
+    image: confluentinc/cp-kafka:7.5.0
+    # Use official Confluent Kafka image
+    # Version 7.5.0 (must match Zookeeper version!)
+    
+    depends_on:
+      - zookeeper
+    # CRITICAL: Wait for Zookeeper to start BEFORE starting Kafka
+    # Kafka needs Zookeeper to exist first
+    # Docker will start Zookeeper, wait for it, then start Kafka
+    
+    ports:
+      # Expose these ports from container to host
+      
+      - "9092:9092"
+      # External port for producers/consumers
+      # When your Python code connects from outside Docker
+      # Use: localhost:9092
+      # Docker forwards it to: container:9092
+      
+      - "9101:9101"
+      # JMX port for metrics/monitoring
+      # (You can ignore this for learning)
+    
+    environment:
+      # Configuration variables for Kafka broker
+      
+      KAFKA_BROKER_ID: 1
+      # Unique ID for this Kafka broker
+      # In a cluster with 3 brokers: broker_id = 1, 2, 3
+      # You only have 1 broker, so: broker_id = 1
+      
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      # WHERE to find Zookeeper
+      # "zookeeper" = container name in Docker network
+      # "2181" = Zookeeper's port
+      # Kafka will connect to: zookeeper:2181
+      
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://kafka:9092
+      # HOW clients can reach Kafka (two different ways)
+      # 
+      # PLAINTEXT://kafka:29092
+      #   For connections FROM INSIDE Docker (other containers)
+      #   Example: Airflow scheduler (in another container) → kafka:29092
+      #
+      # PLAINTEXT_HOST://kafka:9092
+      #   For connections FROM OUTSIDE Docker (your Mac, your Python)
+      #   Example: Your Python code → localhost:9092
+      #
+      # PLAINTEXT = no encryption (fine for learning)
+      
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      # Maps listener names to security protocols
+      #
+      # PLAINTEXT:PLAINTEXT
+      #   Listener "PLAINTEXT" uses "PLAINTEXT" protocol (no encryption)
+      #
+      # PLAINTEXT_HOST:PLAINTEXT
+      #   Listener "PLAINTEXT_HOST" uses "PLAINTEXT" protocol (no encryption)
+      #
+      # Both use PLAINTEXT = simple, no SSL/TLS for learning
+      
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      # How Kafka brokers talk to each other
+      # "PLAINTEXT" = no encryption
+      # In a multi-broker cluster: broker1 ← PLAINTEXT → broker2
+      # You only have 1 broker, so this doesn't matter much
+      
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      # How many copies of Kafka's internal offset topic to keep
+      # Offsets = "Consumer X has read up to message 5000"
+      #
+      # REPLICATION_FACTOR: 1 = keep 1 copy (no backup)
+      # REPLICATION_FACTOR: 3 = keep 3 copies (safer)
+      #
+      # Rule: replication_factor ≤ number_of_brokers
+      # You have 1 broker, so must be 1
+      
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+      # Automatically create topics if they don't exist
+
 volumes:
   postgres_data:
