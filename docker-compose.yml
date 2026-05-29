@@ -201,6 +201,23 @@ services:
       
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
       # Automatically create topics if they don't exist
-
+  terraform:
+    build:
+      context: ./terraform
+      dockerfile: Dockerfile
+    working_dir: /terraform
+    volumes:
+      - ./terraform:/terraform
+    environment:
+      - TF_VAR_kafka_bootstrap_servers_env=kafka:9092
+    depends_on:
+      - kafka
+    command: >
+      bash -c "
+      terraform init &&
+      terraform apply -auto-approve
+      "
+    networks:
+      - default
 volumes:
   postgres_data:
