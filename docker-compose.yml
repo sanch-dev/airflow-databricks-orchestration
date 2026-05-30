@@ -219,5 +219,28 @@ services:
       "
     networks:
       - default
+
+  producer:
+    # Use the same Airflow image (has Python)
+    image: airflow-news-pipeline:latest
+    working_dir: /app
+    volumes:
+      # Mount scripts directory so it can access kafka_producer.py
+      - ./scripts:/app/scripts
+      # Mount .env file so it can read environment variables
+      - ./.env:/app/.env
+    environment:
+      # Read from .env file
+      - NEWS_API_KEY=${NEWS_API_KEY}
+      # Connect to Kafka via Docker network
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    depends_on:
+      # Wait for Kafka to start first
+      - kafka
+    # Run the producer script
+    command: python /app/scripts/kafka_producer.py
+    networks:
+      - default
+
 volumes:
   postgres_data:
