@@ -1,10 +1,9 @@
 version: '3.8'
 
-env_file:
-  - .env
-
 services:
   postgres:
+    env_file:
+      - ./.env
     image: postgres:15
     environment:
       POSTGRES_USER: airflow
@@ -21,6 +20,8 @@ services:
       start_period: 5s
 
   airflow:
+    env_file:
+      - ./.env
     build:
       context: .
       dockerfile: Dockerfile
@@ -52,6 +53,8 @@ services:
                airflow webserver"
 
   scheduler:
+    env_file:
+      - ./.env
     build:
       context: .
       dockerfile: Dockerfile
@@ -86,7 +89,8 @@ services:
   zookeeper:
     # Service name: "zookeeper"
     # Will be accessible as "zookeeper" within Docker network
-    
+    env_file:
+      - ./.env
     image: confluentinc/cp-zookeeper:7.5.0
     # Use official Confluent Zookeeper image
     # Version 7.5.0 (must match Kafka version)
@@ -124,7 +128,8 @@ services:
   kafka:
     # Service name: "kafka"
     # Will be accessible as "kafka" within Docker network
-    
+    env_file:
+      - ./.env
     image: confluentinc/cp-kafka:7.5.0
     # Use official Confluent Kafka image
     # Version 7.5.0 (must match Zookeeper version!)
@@ -205,6 +210,8 @@ services:
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
       # Automatically create topics if they don't exist
   terraform:
+    env_file:
+      - ./.env
     build:
       context: ./terraform
       dockerfile: Dockerfile
@@ -224,6 +231,8 @@ services:
       - default
 
   producer:
+    env_file:
+      - ./.env
     # Use the same Airflow image (has Python)
     image: airflow-news-pipeline:latest
     working_dir: /app
