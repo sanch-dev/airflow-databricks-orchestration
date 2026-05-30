@@ -11,6 +11,8 @@
 # 4. Monitoring what gets sent
 # ============================================================================
 
+import os
+
 import requests
 # Purpose: Make HTTP requests to external APIs (NewsAPI)
 # We use this to fetch news articles from the web
@@ -37,7 +39,7 @@ from datetime import datetime
 # ============================================================================
 
 # NewsAPI Configuration
-NEWS_API_KEY = "7Ujbv1msCWsdbFyGyLajAMopQZaX2ZvT2SSfkHhlXFa03AxFODliJQQJ99CEACHYHv6XJ3w3AAAAACOGxJ4N"  # Replace with your actual NewsAPI key
+NEWS_API_KEY = os.getenv('NEWS_API_KEY', 'YOUR_NEWS_API_KEY')
 # → This proves you're authorized to use NewsAPI
 
 NEWS_API_URL = "https://newsapi.org/v2/top-headlines"
