@@ -250,7 +250,7 @@ services:
       # Wait for Kafka to start first
       - kafka
     # Run the producer script
-    command: bash -c "pip install kafka-python requests python-dotenv && python /app/scripts/kafka_producer.py"
+    command: bash -c "pip install kafka-python requests python-dotenv && sleep 10 && python /app/scripts/kafka_producer.py"
     networks:
       - default
 
